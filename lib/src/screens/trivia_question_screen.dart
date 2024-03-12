@@ -8,13 +8,20 @@ import 'game_over.dart'; // Make sure this import points to your correct file
 class Movie {
   final String title;
   final int releaseYear;
+  final String imageUrl;
 
-  Movie({required this.title, required this.releaseYear});
+  Movie({
+    required this.title,
+    required this.releaseYear,
+    required this.imageUrl,
+  });
 
+  // Dynamically generate movie image for each question
   factory Movie.fromJson(Map<String, dynamic> json) {
     return Movie(
       title: json['title'] as String,
       releaseYear: DateTime.parse(json['release_date'] as String).year,
+      imageUrl: 'https://image.tmdb.org/t/p/w500${json['poster_path']}',
     );
   }
 }
@@ -130,39 +137,49 @@ class _TriviaGameState extends State<TriviaGame> {
         title: Text('Movie Trivia'),
       ),
       body: Center(
-        // Center the column
-        child: Column(
-          mainAxisAlignment:
-              MainAxisAlignment.center, // Center the column contents vertically
-          crossAxisAlignment: CrossAxisAlignment
-              .center, // Center the column contents horizontally
-          children: [
-            Text(
-              'Round $currentRound: What year was "${currentMovie.title}" released?',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: 20), // Add space above the buttons
-            // Map the answerOptions to a list of buttons with spacing
-            ...answerOptions
-                .map((year) => Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical:
-                              8.0), // Adjust the vertical space between buttons
-                      child: ElevatedButton(
-                        onPressed: () => handleAnswer(year),
-                        child: Text(year.toString()),
-                        style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 30, vertical: 15),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(height: 20),
+              Image.network(
+                currentMovie
+                    .imageUrl, // Use the imageUrl from the currentMovie object
+                height: 150,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Icon(Icons
+                      .error); // Display an error icon if the image fails to load
+                },
+              ),
+              SizedBox(height: 20),
+              Divider(thickness: 2),
+              Text(
+                'Round $currentRound: What year was "${currentMovie.title}" released?',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 20),
+              ...answerOptions
+                  .map((year) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: ElevatedButton(
+                          onPressed: () => handleAnswer(year),
+                          child: Text(year.toString()),
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 30, vertical: 15),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
                           ),
                         ),
-                      ),
-                    ))
-                .toList(),
-          ],
+                      ))
+                  .toList(),
+            ],
+          ),
         ),
       ),
     );
