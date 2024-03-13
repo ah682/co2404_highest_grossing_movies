@@ -39,8 +39,7 @@ class Movie {
       title: json['title'] as String,
       releaseYear: DateTime.parse(json['release_date'] as String).year,
       imageUrl: 'https://image.tmdb.org/t/p/w500${json['poster_path']}',
-      genres: List<String>.from(json['genre_ids'].map((id) =>
-          id.toString())), // Replace with actual genre names based on IDs
+      genres: List<String>.from(json['genre_ids'].map((id) => id.toString())),
       director: directorName,
     );
   }
@@ -196,9 +195,9 @@ class _TriviaGameState extends State<TriviaGame> {
             children: [
               SizedBox(height: 20),
               Image.network(currentMovie.imageUrl,
-                  height: 150,
+                  height: 400,
                   width: double.infinity,
-                  fit: BoxFit.cover,
+                  fit: BoxFit.contain,
                   errorBuilder: (context, error, stackTrace) =>
                       Icon(Icons.error)),
               SizedBox(height: 20),
