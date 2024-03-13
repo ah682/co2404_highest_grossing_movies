@@ -15,17 +15,28 @@ class _EnterNameScreenState extends State<EnterNameScreen> {
   final TextEditingController _nameController = TextEditingController();
 
   void _saveNameAndScoreAndRestartGame() async {
+    String name = _nameController.text.trim();
+
+    // Check if the name field is empty
+    if (name.isEmpty) {
+      _showSnackBar('Please enter your name to continue.');
+      return; // Exit the function if the name field is empty
+    }
+
+    // Check if the name exceeds 65 characters
+    if (name.length > 65) {
+      _showSnackBar('The name cannot exceed 65 characters.');
+      return; // Exit the function if the name is too long
+    }
+
     final prefs = await SharedPreferences.getInstance();
     List<String> scores = prefs.getStringList('highScores') ?? [];
 
     // Combine the user's name and score into a single string
-    String combinedScore = '${_nameController.text}: ${widget.score}';
+    String combinedScore = '$name: ${widget.score}';
 
     // Add the new combined score to the list of scores
     scores.add(combinedScore);
-
-    // You might want to limit the size of the scores list to keep the top N scores
-    // scores = scores.take(N).toList();
 
     // Save the updated list back to SharedPreferences
     await prefs.setStringList('highScores', scores);
@@ -34,6 +45,15 @@ class _EnterNameScreenState extends State<EnterNameScreen> {
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (context) => TriviaGame()),
       (Route<dynamic> route) => false,
+    );
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: Duration(seconds: 2),
+      ),
     );
   }
 
@@ -50,9 +70,11 @@ class _EnterNameScreenState extends State<EnterNameScreen> {
           children: [
             TextField(
               controller: _nameController,
+              maxLength: 65, // Set the maxLength property to limit input
               decoration: InputDecoration(
                 labelText: 'Name',
                 border: OutlineInputBorder(),
+                counterText: '', // Hide the counter underneath the TextField
               ),
             ),
             SizedBox(height: 20),
