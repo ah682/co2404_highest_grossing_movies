@@ -11,8 +11,6 @@ class AccessibilitySettings extends StatefulWidget {
 class _AccessibilitySettingsState extends State<AccessibilitySettings> {
   bool darkMode = false;
   bool readableFont = false;
-  bool alphabetOrdering = false;
-  bool chronologicalOrdering = true; // Assuming this is the default setting
 
   @override
   void initState() {
@@ -25,8 +23,6 @@ class _AccessibilitySettingsState extends State<AccessibilitySettings> {
     setState(() {
       darkMode = prefs.getBool('darkMode') ?? false;
       readableFont = prefs.getBool('readableFont') ?? false;
-      alphabetOrdering = prefs.getBool('alphabetOrdering') ?? false;
-      chronologicalOrdering = prefs.getBool('chronologicalOrdering') ?? true;
     });
   }
 
@@ -34,13 +30,6 @@ class _AccessibilitySettingsState extends State<AccessibilitySettings> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       prefs.setBool(key, value);
-      if (key == 'alphabetOrdering' && value == true) {
-        chronologicalOrdering = !value;
-        prefs.setBool('chronologicalOrdering', !value);
-      } else if (key == 'chronologicalOrdering' && value == true) {
-        alphabetOrdering = !value;
-        prefs.setBool('alphabetOrdering', !value);
-      }
     });
   }
 
@@ -68,24 +57,6 @@ class _AccessibilitySettingsState extends State<AccessibilitySettings> {
               });
               final fontModel = Provider.of<FontModel>(context, listen: false);
               fontModel.toggleFont(newValue ? 'OpenDyslexic' : 'Roboto');
-            },
-          ),
-          SwitchListTile(
-            title: Text('Alphabet Ordering'),
-            value: alphabetOrdering,
-            onChanged: (bool newValue) {
-              if (!chronologicalOrdering || newValue) {
-                _updateSetting('alphabetOrdering', newValue);
-              }
-            },
-          ),
-          SwitchListTile(
-            title: Text('Chronological Ordering'),
-            value: chronologicalOrdering,
-            onChanged: (bool newValue) {
-              if (!alphabetOrdering || newValue) {
-                _updateSetting('chronologicalOrdering', newValue);
-              }
             },
           ),
           Padding(
