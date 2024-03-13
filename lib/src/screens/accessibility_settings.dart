@@ -67,7 +67,7 @@ class _AccessibilitySettingsState extends State<AccessibilitySettings> {
                 readableFont = newValue;
               });
               final fontModel = Provider.of<FontModel>(context, listen: false);
-              fontModel.toggleFont(newValue ? 'OpenDyslexic' : 'Default');
+              fontModel.toggleFont(newValue ? 'OpenDyslexic' : 'Roboto');
             },
           ),
           SwitchListTile(
