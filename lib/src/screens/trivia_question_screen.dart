@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'dart:math';
 import 'answer.dart';
 import 'game_over.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'intro_screen.dart'; // Ensure this is the correct import for your IntroScreen
 
 enum QuestionType { Year, Genre, Director }
 
@@ -151,6 +153,7 @@ class _TriviaGameState extends State<TriviaGame> {
   }
 
   navigateToNextScreen(bool isCorrect) {
+    if (isCorrect) score++;
     if (currentRound < 5) {
       Navigator.push(
         context,
@@ -170,10 +173,28 @@ class _TriviaGameState extends State<TriviaGame> {
         ),
       );
     } else {
-      Navigator.pushReplacement(
+      _saveCurrentScore().then((_) {
+        Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
-              builder: (context) => GameOverScreen(score: score)));
+          MaterialPageRoute(builder: (context) => GameOverScreen(score: score)),
+        );
+      });
+    }
+  }
+
+  _saveCurrentScore() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      List<String> highScores = prefs.getStringList('highScores') ?? [];
+      highScores.add('Player: ${score}');
+      highScores.sort((a, b) =>
+          int.parse(b.split(":").last).compareTo(int.parse(a.split(":").last)));
+      if (highScores.length > 5) {
+        highScores = highScores.sublist(0, 5);
+      }
+      await prefs.setStringList('highScores', highScores);
+    } catch (e) {
+      print('Failed to save score: $e');
     }
   }
 
