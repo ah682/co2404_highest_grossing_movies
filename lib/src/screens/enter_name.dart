@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'trivia_question_screen.dart'; // Adjust if necessary to match your file path
+import 'trivia_question_screen.dart'; // Ensure the import path matches the file location
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EnterNameScreen extends StatefulWidget {
-  final int score;
+  final int
+      score; // Holds the score, passed to this screen from the previous screen.
 
   const EnterNameScreen({Key? key, required this.score}) : super(key: key);
 
@@ -16,21 +18,19 @@ class _EnterNameScreenState extends State<EnterNameScreen> {
 
   void _saveNameAndScoreAndRestartGame() async {
     final prefs = await SharedPreferences.getInstance();
-    List<String> scores = prefs.getStringList('highScores') ?? [];
+    await prefs.setString(
+        'username', _nameController.text); // Save the username locally
 
-    // Combine the user's name and score into a single string
-    String combinedScore = '${_nameController.text}: ${widget.score}';
+    // Also, send the username to Firestore for cloud storage
+    final FirebaseFirestore firestore = FirebaseFirestore.instance;
+    await firestore.collection('players').add({
+      'name': _nameController.text,
+      // You can include other data to be stored in Firestore here, such as the score
+      'score': widget.score,
+      'timestamp': FieldValue
+          .serverTimestamp(), // Add a server-side timestamp for sorting/ordering
+    });
 
-    // Add the new combined score to the list of scores
-    scores.add(combinedScore);
-
-    // You might want to limit the size of the scores list to keep the top N scores
-    // scores = scores.take(N).toList();
-
-    // Save the updated list back to SharedPreferences
-    await prefs.setStringList('highScores', scores);
-
-    // Navigate to the TriviaGame screen and remove all routes until there
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (context) => TriviaGame()),
       (Route<dynamic> route) => false,
