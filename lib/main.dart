@@ -3,10 +3,10 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'src/models/font_model.dart'; // Adjust the import path as necessary
 import 'src/screens/intro_screen.dart'; // Adjust the import path as necessary
+import 'src/screens/accessibility_settings.dart'; // Adjust the import path as necessary
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   final prefs = await SharedPreferences.getInstance();
   final isDarkMode = prefs.getBool('darkMode') ?? false;
 
@@ -15,13 +15,11 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => FontModel()),
         ChangeNotifierProvider(
-          create: (_) => ThemeProvider(
-            isDarkMode ? ThemeData.dark() : ThemeData.light(),
-          ),
+          create: (_) =>
+              ThemeProvider(isDarkMode ? ThemeData.dark() : ThemeData.light()),
         ),
       ],
-      child:
-          MyApp(), // Ensure you have a MyApp widget or replace with your app's main widget
+      child: MyApp(), // MyApp is Root widget
     ),
   );
 }
@@ -29,31 +27,16 @@ void main() async {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    // Consumer<ThemeProvider> listens for theme changes
     return Consumer<ThemeProvider>(
-      // Use Consumer to listen to ThemeProvider
       builder: (context, themeProvider, child) {
+        // MaterialApp rebuilds whenever themeProvider notifies listeners
         return MaterialApp(
           title: 'Your App Title',
-          theme: themeProvider.getTheme(), // Use the theme from ThemeProvider
-          home: IntroScreen(),
+          theme: themeProvider.getTheme(), // Applies the current theme
+          home: IntroScreen(), // Your app's home screen
         );
       },
     );
-  }
-}
-
-class ThemeProvider extends ChangeNotifier {
-  ThemeData _themeData;
-
-  ThemeProvider(this._themeData);
-
-  ThemeData getTheme() => _themeData;
-
-  void setTheme(ThemeData theme) async {
-    _themeData = theme;
-    notifyListeners();
-
-    final prefs = await SharedPreferences.getInstance();
-    prefs.setBool('darkMode', _themeData.brightness == Brightness.dark);
   }
 }
