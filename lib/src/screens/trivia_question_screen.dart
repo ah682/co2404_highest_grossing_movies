@@ -6,6 +6,7 @@ import 'answer.dart';
 import 'game_over.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'intro_screen.dart'; // Ensure this is the correct import for your IntroScreen
+import 'package:connectivity/connectivity.dart';
 
 enum QuestionType { Year, Genre, Director }
 
@@ -85,8 +86,21 @@ class _TriviaGameState extends State<TriviaGame> {
     fetchAndSetupRound();
   }
 
+  // Modified fetchAndSetupRound function to check connectivity
   fetchAndSetupRound() async {
     setState(() => isLoading = true);
+
+    // Check network connectivity
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      // No connectivity: Notify the user and save the current state
+      _notifyUserOfConnectivityIssue();
+      _saveGameState();
+      setState(() => isLoading = false);
+      return;
+    }
+
+    // Fetch data as usual if there is connectivity
     MovieApi api = MovieApi();
     List<Movie> movies = await api.fetchPopularMovies();
     Random random = Random();
@@ -132,6 +146,31 @@ class _TriviaGameState extends State<TriviaGame> {
     setState(() => isLoading = false);
   }
 
+  // Function to save the current game state
+  _saveGameState() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('currentRound', currentRound);
+    await prefs.setInt('score', score);
+    // Save other necessary game state data as needed
+  }
+
+// Function to notify the user of connectivity issues
+  _notifyUserOfConnectivityIssue() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Connectivity Issue"),
+        content: Text("You're offline. Check your internet connection."),
+        actions: <Widget>[
+          TextButton(
+            child: Text('OK'),
+            onPressed: () => Navigator.of(context).pop(), // Close the dialog
+          ),
+        ],
+      ),
+    );
+  }
+
   void handleAnswer(dynamic selectedAnswer) {
     bool isCorrect = false;
     switch (questionType) {
@@ -147,13 +186,11 @@ class _TriviaGameState extends State<TriviaGame> {
       default:
         break;
     }
-
     if (isCorrect) score++;
     navigateToNextScreen(isCorrect);
   }
 
   navigateToNextScreen(bool isCorrect) {
-    if (isCorrect) score++;
     if (currentRound < 5) {
       Navigator.push(
         context,
@@ -185,13 +222,30 @@ class _TriviaGameState extends State<TriviaGame> {
   _saveCurrentScore() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      String username =
+          prefs.getString('username') ?? 'Player'; // Fetch the entered name
+
       List<String> highScores = prefs.getStringList('highScores') ?? [];
-      highScores.add('Player: ${score}');
-      highScores.sort((a, b) =>
-          int.parse(b.split(":").last).compareTo(int.parse(a.split(":").last)));
+      String newScoreEntry = '$username: $score';
+
+      // Update the score for the user if it's higher than the existing one or if there is no existing one
+      int existingIndex =
+          highScores.indexWhere((entry) => entry.startsWith('$username:'));
+      if (existingIndex != -1) {
+        highScores[existingIndex] = newScoreEntry;
+      } else {
+        highScores.add(newScoreEntry);
+      }
+
+      // Sort the list by scores in descending order
+      highScores.sort((a, b) => int.parse(b.split(":")[1].trim())
+          .compareTo(int.parse(a.split(":")[1].trim())));
+
+      // If you want to keep only the top 5 scores
       if (highScores.length > 5) {
         highScores = highScores.sublist(0, 5);
       }
+
       await prefs.setStringList('highScores', highScores);
     } catch (e) {
       print('Failed to save score: $e');
