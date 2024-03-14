@@ -70,7 +70,7 @@ class AnswerScreen extends StatelessWidget {
                 ),
               ),
               style: ElevatedButton.styleFrom(
-                primary: Theme.of(context)
+                backgroundColor: Theme.of(context)
                     .primaryColor, // Button color uses the primary color from the theme.
                 padding: EdgeInsets.symmetric(
                     horizontal: 30,
