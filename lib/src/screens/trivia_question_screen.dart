@@ -147,13 +147,11 @@ class _TriviaGameState extends State<TriviaGame> {
       default:
         break;
     }
-
     if (isCorrect) score++;
     navigateToNextScreen(isCorrect);
   }
 
   navigateToNextScreen(bool isCorrect) {
-    if (isCorrect) score++;
     if (currentRound < 5) {
       Navigator.push(
         context,
@@ -185,13 +183,30 @@ class _TriviaGameState extends State<TriviaGame> {
   _saveCurrentScore() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      String username =
+          prefs.getString('username') ?? 'Player'; // Fetch the entered name
+
       List<String> highScores = prefs.getStringList('highScores') ?? [];
-      highScores.add('Player: ${score}');
-      highScores.sort((a, b) =>
-          int.parse(b.split(":").last).compareTo(int.parse(a.split(":").last)));
+      String newScoreEntry = '$username: $score';
+
+      // Update the score for the user if it's higher than the existing one or if there is no existing one
+      int existingIndex =
+          highScores.indexWhere((entry) => entry.startsWith('$username:'));
+      if (existingIndex != -1) {
+        highScores[existingIndex] = newScoreEntry;
+      } else {
+        highScores.add(newScoreEntry);
+      }
+
+      // Sort the list by scores in descending order
+      highScores.sort((a, b) => int.parse(b.split(":")[1].trim())
+          .compareTo(int.parse(a.split(":")[1].trim())));
+
+      // If you want to keep only the top 5 scores
       if (highScores.length > 5) {
         highScores = highScores.sublist(0, 5);
       }
+
       await prefs.setStringList('highScores', highScores);
     } catch (e) {
       print('Failed to save score: $e');
