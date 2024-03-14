@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'trivia_question_screen.dart'; // Ensure the import path matches the file location
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EnterNameScreen extends StatefulWidget {
   final int
@@ -20,17 +19,6 @@ class _EnterNameScreenState extends State<EnterNameScreen> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(
         'username', _nameController.text); // Save the username locally
-
-    // Also, send the username to Firestore for cloud storage
-    final FirebaseFirestore firestore = FirebaseFirestore.instance;
-    await firestore.collection('players').add({
-      'name': _nameController.text,
-      // You can include other data to be stored in Firestore here, such as the score
-      'score': widget.score,
-      'timestamp': FieldValue
-          .serverTimestamp(), // Add a server-side timestamp for sorting/ordering
-    });
-
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (context) => TriviaGame()),
       (Route<dynamic> route) => false,
