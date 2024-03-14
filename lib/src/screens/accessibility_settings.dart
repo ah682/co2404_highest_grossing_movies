@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
-import '/src/models/font_model.dart'; // Ensure this is correctly pointing to your FontModel file
+import '/src/models/font_model.dart';
 
 class AccessibilitySettings extends StatefulWidget {
   @override
