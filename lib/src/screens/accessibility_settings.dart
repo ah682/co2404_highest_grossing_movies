@@ -3,6 +3,22 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import '/src/models/font_model.dart';
 
+class ThemeProvider extends ChangeNotifier {
+  ThemeData _themeData;
+
+  ThemeProvider(this._themeData);
+
+  getTheme() => _themeData;
+
+  setTheme(ThemeData theme) async {
+    _themeData = theme;
+    notifyListeners(); // This is crucial
+
+    var prefs = await SharedPreferences.getInstance();
+    prefs.setBool('darkMode', _themeData.brightness == Brightness.dark);
+  }
+}
+
 class AccessibilitySettings extends StatefulWidget {
   @override
   _AccessibilitySettingsState createState() => _AccessibilitySettingsState();
@@ -28,9 +44,15 @@ class _AccessibilitySettingsState extends State<AccessibilitySettings> {
 
   Future<void> _updateSetting(String key, bool value) async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      prefs.setBool(key, value);
-    });
+    await prefs.setBool(key, value);
+
+    if (key == 'darkMode') {
+      final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+      themeProvider.setTheme(value ? ThemeData.dark() : ThemeData.light());
+      // No need for setState here since ThemeProvider's notifyListeners() will handle the update
+    } else if (key == 'readableFont') {
+      // Handle readable font setting
+    }
   }
 
   @override
